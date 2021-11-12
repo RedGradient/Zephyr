@@ -1,26 +1,46 @@
 <script setup>
 
+import router from '../../routes/index.js';
+
 function handleChange(event) {
     console.log('Switching language...');
     localStorage.setItem('lang', event.target.value);
     // window.location.reload();
 }
 
+function getHomeServer(homeserver) {
+    if (homeserver.startsWith('https://')) return homeserver;
+    return 'https://' + homeserver;
+}
+
+function getUserId(userId, homeserver) {
+    if (homeserver.startsWith('https://')) homeserver = homeserver.split('https://')[1];
+    if (userId.startsWith('@') && userId.endsWith(':' + homeserver)) return userId;
+    return '@' + userId + ':' + homeserver;
+}
+
 function login(event) {
     console.log("Login...");
 
-    const homeserver = document.getElementById('homeserver').value;
-    const user_id = document.getElementById('user-id').value;
+    const homeserver = this.getHomeServer(document.getElementById('homeserver').value);
+    const userId = this.getUserId(document.getElementById('user-id').value, homeserver);
     const password = document.getElementById('password').value;
+    
+    const client = matrixcs.createClient(homeserver);
 
-    // сделать поддержку ввода с https://
-    const client = matrixcs.createClient("https://" + homeserver);
-
-    client.login("m.login.password", {"user": user_id, "password": password}).then(
+    client.login("m.login.password", {"user": userId, "password": password}).then(
         result => {
             console.log("Access token: " + result.access_token);
-            localStorage.setItem("token", result.access_token);
+
+            // save data to localStorage
+            localStorage.setItem("baseUrl", homeserver);
+            localStorage.setItem("accessToken", result.access_token);
+            localStorage.setItem("userId", userId);
+            
             console.log("Success!");
+
+            // open chat page
+            router.push({ name: 'ChatPage'});
         },
 
         error => {
@@ -28,7 +48,6 @@ function login(event) {
         },
     );
 
-    // client.sync()
 }
 
 function handleHomeserverChange(event) {
