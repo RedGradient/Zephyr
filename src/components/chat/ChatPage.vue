@@ -47,6 +47,8 @@ export default {
 
         setCurrentRoom(event) {
 
+            this.currentRoomId = event.roomId;
+
             // set room header
             // if (this.header) {
             //     this.header.unmount();
