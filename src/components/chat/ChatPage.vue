@@ -21,14 +21,18 @@ export default {
                 type: Object,
                 default: null
             },
-            currentHeader: {
+            header: {
                 type: Object,
-                default: {h: null}
+                default: null
             },
-            messages: {
-                type: Object,
-                default: {m: []}
+            currentRoomId: {
+                type: String,
+                default: null
             },
+            // messages: {
+            //     type: Object,
+            //     default: {m: []}
+            // },
         }
     },
 
@@ -42,22 +46,25 @@ export default {
     methods: {
 
         setCurrentRoom(event) {
+
             // set room header
-            console.log('event:'); console.log(event);
-            if (this.currentHeader.h) {
-                this.currentHeader.h.unmount();
+            // if (this.header) {
+            //     this.header.unmount();
+            // }
+            try {
+                this.header.unmount();
+            } catch {
+
             }
             const CreateChatHeaderApp = () => createApp(ChatHeader, {
                 roomId: event.roomId,
                 roomName: event.roomName,
                 roomAvatarUrl: event.roomAvatarUrl
             });
-            this.currentHeader.h = CreateChatHeaderApp();
-            this.currentHeader.h.mount('#chat-header');
+            this.header = CreateChatHeaderApp();
+            this.header.mount('#chat-header');
 
-
-            // load room messages
-            console.log(this.currentHeader);
+            // hide old room messages and show actual messages
 
         },
 
@@ -68,10 +75,8 @@ export default {
         // });
 
         messageHandler(event) {
-            // this.currentHeader.h && this.currentHeader.h.roomId === event.room_id
-            if (this.currentHeader.h && this.currentHeader.h.roomId === event.room_id) {
-                
-                
+            // this.header.h && this.header.h.roomId === event.room_id
+            if (this.currentRoomId && this.currentRoomId === event.room_id) {
                 
                 console.log('Event room_id'); console.log(event.room_id);
                 const CreateMessageApp = () => createApp(Message, {
@@ -190,7 +195,7 @@ export default {
             this.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
                 if (event.getType() === "m.room.message") {
                     console.log(event);
-                    // this.messageHandler(event.event);
+                    this.messageHandler(event.event);
                 }
             });
 
@@ -231,7 +236,7 @@ export default {
 
 <template>
     <div class="flex min-h-screen max-w-full">
-        <aside id="left" class="bg-green-200 max-h-screen overflow-y-scroll">
+        <aside id="left" class="bg-green-200 max-h-screen overflow-y-scroll w-64">
             <div class="">
                 <RoomListItem @room-list-item-clicked="setCurrentRoom" v-for="room in rooms"
                     :key="room"

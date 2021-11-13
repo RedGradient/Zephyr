@@ -4,7 +4,9 @@ export default {
         roomId: String,
         roomName: String,
         roomAvatarUrl: String,
-    }
+    },
+
+    expose: ['roomId']
 }
 </script>
 
