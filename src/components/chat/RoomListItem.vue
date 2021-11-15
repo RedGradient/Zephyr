@@ -1,33 +1,39 @@
 <script>
-// TODO: адаптивность
-
 export default {
     name: 'RoomListItem',
+
+    emits: ['roomListItemClicked'],
+
+    data() {
+        return {
+            pressed: false,
+        }
+    },
 
     props: {
         roomId: String,
         roomName: String,
         roomNotificationCounts: Number,
-        roomAvatarUrl: String,
+        roomAvatarUrl: String, 
     },
 
     methods: {
         selectRoom() {
             this.$emit('roomListItemClicked', {
+                self: this,
+
                 roomId: this.roomId,
                 roomName: this.roomName,
                 roomAvatarUrl: this.roomAvatarUrl
             });
         },
-    }
+    },
 }
 </script>
 
 <template>
-    <div class="flex items-center justify-between h-14 p-1 pl-3 pr-3 hover:bg-green-400 cursor-pointer" @click="selectRoom">
+    <div class="flex items-center justify-between h-14 p-1 pl-3 pr-3 cursor-pointer" :class="[pressed ? 'bg-green-400' : 'hover:bg-gray-50']" @click="selectRoom">
         <div class="flex items-center">
-            <!-- :alt=this.room.name -->
-            <!-- room.getAvatarUrl(room.client.getHomeserverUrl()) -->
             <img class="rounded mr-3 w-8 h-8" :src=roomAvatarUrl >
             <span>{{ roomName }}</span>
         </div>

@@ -29,10 +29,10 @@ export default {
                 type: String,
                 default: null
             },
-            // messages: {
-            //     type: Object,
-            //     default: {m: []}
-            // },
+            currentRoom: {
+                type: Object,
+                default: null
+            }
         }
     },
 
@@ -46,18 +46,22 @@ export default {
     methods: {
 
         setCurrentRoom(event) {
-
+            if (this.currentRoomId === event.roomId) {
+                return;
+            }
             this.currentRoomId = event.roomId;
 
-            // set room header
-            // if (this.header) {
-            //     this.header.unmount();
-            // }
+            if (this.currentRoom.$data) {
+                this.currentRoom.$data.pressed = false;
+            }
+            event.self.$data.pressed = true;
+            this.currentRoom = event.self;
+
+            // use try-catch because this.header can be null
             try {
                 this.header.unmount();
-            } catch {
+            } catch { }
 
-            }
             const CreateChatHeaderApp = () => createApp(ChatHeader, {
                 roomId: event.roomId,
                 roomName: event.roomName,
@@ -67,20 +71,17 @@ export default {
             this.header.mount('#chat-header');
 
             // hide old room messages and show actual messages
+            const old_messages = document.getElementById('messages');
+            while (old_messages.childNodes.length > 0) {
+                old_messages.childNodes[0].remove()
+            }
+            this.client.getRoom(event.roomId).timeline.forEach(t => { this.messageHandler(t.event); });
 
         },
 
-        // Object.keys(client.store.rooms).forEach((roomId) => {
-        //     client.getRoom(roomId).timeline.forEach(t => {
-        //         console.log(t.event);
-        //     });
-        // });
-
         messageHandler(event) {
-            // this.header.h && this.header.h.roomId === event.room_id
             if (this.currentRoomId && this.currentRoomId === event.room_id) {
                 
-                console.log('Event room_id'); console.log(event.room_id);
                 const CreateMessageApp = () => createApp(Message, {
                     roomId: event.room_id,
                     sender: event.sender,
@@ -97,24 +98,11 @@ export default {
 
                 message.mount(new_message_div);
             }
-            //  else {
-            //     // get room_id
-            //     // update the room's notify counter
-            //     // console.log('**** message won`t displayed ****');
-            //     // console.log('currentHeader room_id'); console.log(this.currentHeader.h.roomId);
-            //     // console.log('Event room_id'); console.log(event.room_id);
-            // }
-            
+        },
 
-            // сравнение комнаты сообщения с текущей открытой комнатой
-            // если true - выводим сообщения, если false - изменяем бейдж
-
-            // console.log(event);
-        }
     },
 
     setup(props) {
-        console.log('--- in setup() ---');
         const selectTarget = (fromElement, selector) => {
             if (!(fromElement instanceof HTMLElement)) {
                 return null;
@@ -176,7 +164,6 @@ export default {
     },
 
     created() {
-        console.log('--- in created() ---');
         
         // if there is assess data in the localStore
         if (window.localStorage['baseUrl'] && window.localStorage['accessToken'] && window.localStorage['userId']) {
@@ -196,7 +183,6 @@ export default {
             // listen to room events
             this.client.on("Room.timeline", (event, room, toStartOfTimeline) => {
                 if (event.getType() === "m.room.message") {
-                    console.log(event);
                     this.messageHandler(event.event);
                 }
             });
@@ -239,7 +225,7 @@ export default {
 <template>
     <div class="flex min-h-screen max-w-full">
         <aside id="left" class="bg-green-200 max-h-screen overflow-y-scroll w-64">
-            <div class="">
+            <div id="room-list" class="">
                 <RoomListItem @room-list-item-clicked="setCurrentRoom" v-for="room in rooms"
                     :key="room"
 
