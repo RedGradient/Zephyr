@@ -18,10 +18,7 @@
                     console.log(err);
                 });
 
-                console.log('send click event');
-                console.log(event);
-                console.log(input);
-                console.log(this.$parent.currentRoomId);
+                document.getElementById('input').innerText = "";
             }
         }
     }
